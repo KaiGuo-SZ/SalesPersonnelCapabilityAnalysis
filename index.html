@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>销售能力分析仪表盘（工具版）</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="header">
+        <div>
+          <div class="title">销售能力分析仪表盘（工具版）</div>
+          <div class="subtitle">
+            <span id="metaUpdatedAt"></span>
+            <span class="dot">·</span>
+            <span id="metaSelection"></span>
+            <span class="dot">·</span>
+            <span id="metaLogic"></span>
+          </div>
+        </div>
+      </header>
+
+      <section class="card toolCard">
+        <div class="toolGrid">
+          <div class="toolBlock">
+            <div class="toolLabel">导入数据</div>
+            <input class="fileInput" id="fileInput" type="file" accept=".csv,.tsv,text/*" />
+            <div class="toolHint">支持 utf-16（tab 分隔）文件</div>
+          </div>
+
+          <div class="toolBlock">
+            <div class="toolLabel">导入入职状态（可选）</div>
+            <input class="fileInput" id="typeFileInput" type="file" accept=".csv,text/*" />
+            <div class="toolHint" id="typeFileHint">用于补充“班长类型”标签（优先通过班长关联）</div>
+          </div>
+
+          <div class="toolBlock">
+            <div class="toolLabel">月份</div>
+            <div class="multiDrop">
+              <button class="btn" id="monthToggle" type="button">选择月份</button>
+              <div class="multiDropPanel hidden" id="monthPanel">
+                <div class="checkList" id="monthList"></div>
+                <div class="toolActions">
+                  <button class="btn" id="monthAll" type="button">全选</button>
+                  <button class="btn" id="monthClear" type="button">清空</button>
+                </div>
+              </div>
+            </div>
+            <div class="toolActions">
+              <span class="toolHint" id="monthHint"></span>
+            </div>
+          </div>
+
+          <div class="toolBlock">
+            <div class="toolLabel">营期</div>
+            <div class="multiDrop">
+              <button class="btn" id="campToggle" type="button">选择营期</button>
+              <div class="multiDropPanel hidden" id="campPanel">
+                <div class="checkList" id="campList"></div>
+                <div class="toolActions">
+                  <button class="btn" id="campAll" type="button">全选</button>
+                  <button class="btn" id="campClear" type="button">清空</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="toolBlock">
+            <div class="toolLabel">大组</div>
+            <div class="multiDrop">
+              <button class="btn" id="lgToggle" type="button">选择大组</button>
+              <div class="multiDropPanel hidden" id="lgPanel">
+                <div class="checkList" id="lgList"></div>
+                <div class="toolActions">
+                  <button class="btn" id="lgAll" type="button">全选</button>
+                  <button class="btn" id="lgClear" type="button">清空</button>
+                </div>
+              </div>
+            </div>
+            <div class="toolHint" id="lgHint"></div>
+          </div>
+
+          <div class="toolBlock">
+            <div class="toolLabel">小组</div>
+            <div class="multiDrop">
+              <button class="btn" id="sgToggle" type="button">选择小组</button>
+              <div class="multiDropPanel hidden" id="sgPanel">
+                <div class="checkList" id="sgList"></div>
+                <div class="toolActions">
+                  <button class="btn" id="sgAll" type="button">全选</button>
+                  <button class="btn" id="sgClear" type="button">清空</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="toolBlock">
+            <div class="toolLabel">分层</div>
+            <div class="multiDrop">
+              <button class="btn" id="tierToggle" type="button">选择分层</button>
+              <div class="multiDropPanel hidden" id="tierPanel">
+                <div class="checkList" id="tierList"></div>
+                <div class="toolActions">
+                  <button class="btn" id="tierAll" type="button">全选</button>
+                  <button class="btn" id="tierClear" type="button">清空</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="toolBlock">
+            <div class="toolLabel">入职状态</div>
+            <div class="multiDrop">
+              <button class="btn" id="empToggle" type="button">选择入职状态</button>
+              <div class="multiDropPanel hidden" id="empPanel">
+                <div class="checkList" id="empList"></div>
+                <div class="toolActions">
+                  <button class="btn" id="empAll" type="button">全选</button>
+                  <button class="btn" id="empClear" type="button">清空</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="toolBlock toolBlockEnd">
+            <button class="btn primary" id="runBtn">生成仪表盘</button>
+            <div class="status" id="statusText">请先导入数据</div>
+          </div>
+        </div>
+      </section>
+
+      <nav class="tabBar">
+        <button class="tabBtn active" data-tab="overview">销售能力分层</button>
+        <button class="tabBtn" data-tab="employment">入职状态</button>
+        <button class="tabBtn" data-tab="detail">班长明细</button>
+        <button class="tabBtn" data-tab="performance">班长业绩分析</button>
+        <button class="tabBtn" data-tab="upgrade">升班分析</button>
+      </nav>
+
+      <div id="tab_overview">
+        <section class="grid kpis">
+          <div class="card">
+            <div class="cardLabel">整体 ROI</div>
+            <div class="cardValue" id="kpiOverallRoi">-</div>
+            <div class="cardHint">总流水 / 总成本</div>
+          </div>
+          <div class="card">
+            <div class="cardLabel">整体 转化率</div>
+            <div class="cardValue" id="kpiOverallCvr">-</div>
+            <div class="cardHint">总单数 / 添加数</div>
+          </div>
+          <div class="card">
+            <div class="cardLabel">整体 添加产值</div>
+            <div class="cardValue" id="kpiOverallArpu">-</div>
+            <div class="cardHint">总流水 / 添加数</div>
+          </div>
+          <div class="card">
+            <div class="cardLabel">覆盖 班长数</div>
+            <div class="cardValue" id="kpiMonitorCount">-</div>
+            <div class="cardHint">去除自然流/短信</div>
+          </div>
+        </section>
+
+        <section class="grid twoCols">
+          <div class="card">
+            <div class="cardTitle">整体 ROI 分层占比（班长口径）</div>
+            <div class="chart" id="chartOverallTier"></div>
+            <div class="miniWrap">
+              <table class="miniTable" id="overallTierTable"></table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cardTitle">各大组 ROI 分层占比（班长口径）</div>
+            <div class="cardHint" id="tierLegendHint"></div>
+            <div class="chart" id="chartLargeGroupTierStack"></div>
+          </div>
+        </section>
+
+        <section class="dimRow">
+          <div class="card">
+            <div class="cardTitle">大组 ROI</div>
+            <div class="chart" id="chartLargeGroupRoi"></div>
+          </div>
+          <div class="card">
+            <div class="cardTitle">大组指标表</div>
+            <div class="tableWrap">
+              <table class="table tableCompact tableAgg" id="tableLargeGroup"></table>
+            </div>
+          </div>
+        </section>
+
+        <section class="dimRow">
+          <div class="card">
+            <div class="cardTitle">主管 ROI</div>
+            <div class="chart" id="chartSupervisorRoi"></div>
+          </div>
+          <div class="card">
+            <div class="cardTitle">主管指标表</div>
+            <div class="tableWrap">
+              <table class="table tableCompact tableAgg" id="tableSupervisor"></table>
+            </div>
+          </div>
+        </section>
+
+        <section class="dimRow">
+          <div class="card">
+            <div class="cardTitle">小组 ROI</div>
+            <div class="chart" id="chartSmallGroupRoi"></div>
+          </div>
+          <div class="card">
+            <div class="cardTitle">小组指标表</div>
+            <div class="tableWrap">
+              <table class="table tableCompact tableAgg" id="tableSmallGroup"></table>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="cardTitle">大组内 ROI 分层与名单（班长口径）</div>
+          <div class="cardHint">每个大组占用一整排：左侧分层结构，右侧班长指标明细</div>
+          <div class="lgFullRows" id="largeGroupFullRows"></div>
+        </section>
+      </div>
+
+      <div id="tab_detail" class="hidden">
+        <section class="card">
+          <div class="row">
+            <div>
+              <div class="cardTitle">班长明细（可筛选）</div>
+              <div class="cardHint">默认展示全部；支持按 ROI 分层筛选与关键词搜索</div>
+            </div>
+            <div class="rowRight">
+              <input id="monitorSearch" class="input" placeholder="按 班长/大组/小组 搜索" />
+              <select id="tierFilter" class="select">
+                <option value="all">全部 ROI 分层</option>
+                <option value="head">头部</option>
+                <option value="mid">中部</option>
+                <option value="tail">尾部</option>
+              </select>
+            </div>
+          </div>
+          <div class="tableWrap">
+            <table class="table" id="monitorTable"></table>
+          </div>
+        </section>
+      </div>
+
+      <div id="tab_employment" class="hidden">
+        <section class="card">
+          <div class="cardTitle">班长类型占比</div>
+          <div class="cardHint">整体 / 社群一部 / 社群三部</div>
+          <section class="grid threeCols">
+            <div class="card">
+              <div class="cardTitle">整体</div>
+              <div class="chart" id="chartTypeOverall"></div>
+              <div class="miniWrap">
+                <table class="miniTable" id="tableTypeOverall"></table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="cardTitle">社群一部</div>
+              <div class="chart" id="chartTypeLg1"></div>
+              <div class="miniWrap">
+                <table class="miniTable" id="tableTypeLg1"></table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="cardTitle">社群三部</div>
+              <div class="chart" id="chartTypeLg3"></div>
+              <div class="miniWrap">
+                <table class="miniTable" id="tableTypeLg3"></table>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="card">
+          <div class="cardTitle">班长类型关键指标对比</div>
+          <div class="cardHint">标签/数据条/色阶规则与“销售能力分层”一致；包含按大组与汇总</div>
+          <section class="grid threeCols">
+            <div class="card">
+              <div class="cardTitle">新人：ROI分层占比</div>
+              <div class="chart" id="chartTypeTierNew"></div>
+            </div>
+            <div class="card">
+              <div class="cardTitle">回流：ROI分层占比</div>
+              <div class="chart" id="chartTypeTierBack"></div>
+            </div>
+            <div class="card">
+              <div class="cardTitle">老人：ROI分层占比</div>
+              <div class="chart" id="chartTypeTierOld"></div>
+            </div>
+          </section>
+          <div class="tableWrap">
+            <table class="table" id="tableTypeMetrics"></table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="cardTitle">新人首期分析</div>
+          <div class="cardHint">首期定义：班长类型=新，最小营期</div>
+          <div class="tableWrap">
+            <table class="table" id="tableNewFirst"></table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="cardTitle">回流首期分析</div>
+          <div class="cardHint">首期定义：班长类型=回流，最小营期</div>
+          <div class="tableWrap">
+            <table class="table" id="tableBackFirst"></table>
+          </div>
+        </section>
+      </div>
+
+      <div id="tab_upgrade" class="hidden">
+        <section class="grid sixCols">
+          <div class="card">
+            <div class="cardLabel">区间 升班率（去重班长）</div>
+            <div class="cardValue" id="kpiUpgradeRateDedup">-</div>
+            <div class="cardHint">去重升班班长数 / 去重班长数</div>
+          </div>
+          <div class="card">
+            <div class="cardLabel">区间 升班率（班次口径）</div>
+            <div class="cardValue" id="kpiUpgradeRateTimes">-</div>
+            <div class="cardHint">sum(营期升班班长数) / sum(营期班长数)</div>
+          </div>
+          <div class="card">
+            <div class="cardLabel">区间 人效</div>
+            <div class="cardValue" id="kpiPeopleEff">-</div>
+            <div class="cardHint">添加人数之和 / 班长数之和</div>
+          </div>
+          <div class="card">
+            <div class="cardLabel">覆盖 班长数</div>
+            <div class="cardValue" id="kpiUpgradeMonitorCnt">-</div>
+            <div class="cardHint">选中范围内去重班长</div>
+          </div>
+          <div class="card">
+            <div class="cardLabel">覆盖 班长数（班次）</div>
+            <div class="cardValue" id="kpiUpgradeMonitorCntTimes">-</div>
+            <div class="cardHint">sum(营期班长数)</div>
+          </div>
+          <div class="card">
+            <div class="cardLabel">覆盖 营期数</div>
+            <div class="cardValue" id="kpiUpgradeCampCnt">-</div>
+            <div class="cardHint">选中营期数</div>
+          </div>
+        </section>
+
+        <section class="grid twoCols">
+          <div class="card">
+            <div class="cardTitle">升班率趋势（营期）</div>
+            <div class="chart" id="chartUpgradeRate"></div>
+          </div>
+          <div class="card">
+            <div class="cardTitle">人效趋势（营期）</div>
+            <div class="chart" id="chartPeopleEff"></div>
+          </div>
+        </section>
+
+        <section class="card stackGap">
+          <div class="cardTitle">班型分布（营期）</div>
+          <div class="chart" id="chartClassTypeStack"></div>
+        </section>
+
+        <section class="card">
+          <div class="cardTitle">班型指标对比（区间）</div>
+          <div class="cardHint">仅统计 小班/中班/大班（按 班长×营期 记录汇总）</div>
+          <div class="tableWrap">
+            <table class="table" id="upgradeClassTypeTable"></table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="row">
+            <div>
+              <div class="cardTitle">升班班长清单</div>
+              <div class="cardHint">仅展示选中范围内出现过中班/大班的班长；点击可展开查看营期明细</div>
+            </div>
+            <div class="rowRight">
+              <input id="upgradeSearch" class="input" placeholder="按 班长/大组/小组 搜索" />
+            </div>
+          </div>
+          <div class="tableWrap">
+            <table class="table" id="upgradeMonitorTable"></table>
+          </div>
+          <div class="expandWrap" id="upgradeExpand"></div>
+        </section>
+      </div>
+
+      <div id="tab_performance" class="hidden">
+        <section class="card">
+          <div class="row">
+            <div>
+              <div class="cardTitle">班长业绩分析</div>
+              <div class="cardHint">点击班长行展开趋势图：ROI/添加产值/转化率/Z-score（营期内添加产值）；支持一键切换各班长近3个实际带班营期</div>
+            </div>
+            <div class="rowRight">
+              <button class="btn" id="perfRecent3Btn" type="button">仅看各班长近3期</button>
+              <button class="btn" id="perfExportBtn" type="button">导出 CSV</button>
+              <button class="btn" id="perfExportByDayBtn" type="button">导出 营期BYDAY</button>
+              <input id="perfSearch" class="input" placeholder="按 班长/大组/小组 搜索" />
+            </div>
+          </div>
+          <div class="tableWrap">
+            <table class="table tablePerf" id="perfTable"></table>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script src="./compute.js?v=20260615_v3_12"></script>
+    <script src="./render.js?v=20260615_v3_12"></script>
+    <script src="./app.js?v=20260615_v3_12"></script>
+  </body>
+</html>
