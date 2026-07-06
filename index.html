@@ -1,418 +1,276 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>销售能力分析仪表盘（工具版）</title>
-    <link rel="stylesheet" href="./styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-  </head>
-  <body>
-    <div class="page">
-      <header class="header">
-        <div>
-          <div class="title">销售能力分析仪表盘（工具版）</div>
-          <div class="subtitle">
-            <span id="metaUpdatedAt"></span>
-            <span class="dot">·</span>
-            <span id="metaSelection"></span>
-            <span class="dot">·</span>
-            <span id="metaLogic"></span>
-          </div>
-        </div>
-      </header>
-
-      <section class="card toolCard">
-        <div class="toolGrid">
-          <div class="toolBlock">
-            <div class="toolLabel">导入数据</div>
-            <input class="fileInput" id="fileInput" type="file" accept=".csv,.tsv,text/*" />
-            <div class="toolHint">支持 utf-16（tab 分隔）文件</div>
-          </div>
-
-          <div class="toolBlock">
-            <div class="toolLabel">导入入职状态（可选）</div>
-            <input class="fileInput" id="typeFileInput" type="file" accept=".csv,text/*" />
-            <div class="toolHint" id="typeFileHint">用于补充“班长类型”标签（优先通过班长关联）</div>
-          </div>
-
-          <div class="toolBlock">
-            <div class="toolLabel">月份</div>
-            <div class="multiDrop">
-              <button class="btn" id="monthToggle" type="button">选择月份</button>
-              <div class="multiDropPanel hidden" id="monthPanel">
-                <div class="checkList" id="monthList"></div>
-                <div class="toolActions">
-                  <button class="btn" id="monthAll" type="button">全选</button>
-                  <button class="btn" id="monthClear" type="button">清空</button>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AB 测试分析平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="app-topbar">
+            <div class="container-fluid app-container">
+                <div class="topbar-row">
+                    <div>
+                        <div class="eyebrow">AB Testing</div>
+                        <h1 class="app-title">AB 测试分析平台</h1>
+                        <p class="app-subtitle">导入数据，配置营期与分组，查看分析结果。</p>
+                    </div>
+                    <div class="topbar-actions">
+                        <div class="status-pill" id="workflow-status">待导入数据</div>
+                        <button id="reset-btn-v2" class="btn btn-light btn-soft" type="button">重置工作区</button>
+                    </div>
                 </div>
-              </div>
             </div>
-            <div class="toolActions">
-              <span class="toolHint" id="monthHint"></span>
-            </div>
-          </div>
+        </header>
 
-          <div class="toolBlock">
-            <div class="toolLabel">营期</div>
-            <div class="multiDrop">
-              <button class="btn" id="campToggle" type="button">选择营期</button>
-              <div class="multiDropPanel hidden" id="campPanel">
-                <div class="checkList" id="campList"></div>
-                <div class="toolActions">
-                  <button class="btn" id="campAll" type="button">全选</button>
-                  <button class="btn" id="campClear" type="button">清空</button>
+        <main class="container-fluid app-container pb-5">
+            <section class="stepper-card">
+                <div class="stepper-head">
+                    <div>
+                        <div class="section-kicker">工作流</div>
+                        <h2 class="section-title">配置流程</h2>
+                    </div>
+                    <div class="stepper-meta" id="stepper-meta">Step 1 / 4</div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="toolBlock">
-            <div class="toolLabel">大组</div>
-            <div class="multiDrop">
-              <button class="btn" id="lgToggle" type="button">选择大组</button>
-              <div class="multiDropPanel hidden" id="lgPanel">
-                <div class="checkList" id="lgList"></div>
-                <div class="toolActions">
-                  <button class="btn" id="lgAll" type="button">全选</button>
-                  <button class="btn" id="lgClear" type="button">清空</button>
+                <div class="stepper-track" id="stepper-track">
+                    <button class="stepper-item is-active" data-step-target="1" type="button">
+                        <span class="step-index">01</span>
+                        <span class="step-copy"><strong>导入数据</strong><small>上传 CSV</small></span>
+                    </button>
+                    <button class="stepper-item" data-step-target="2" type="button" disabled>
+                        <span class="step-index">02</span>
+                        <span class="step-copy"><strong>营期配置</strong><small>选择测试营期</small></span>
+                    </button>
+                    <button class="stepper-item" data-step-target="3" type="button" disabled>
+                        <span class="step-index">03</span>
+                        <span class="step-copy"><strong>分组配置</strong><small>配置测试与对照</small></span>
+                    </button>
+                    <button class="stepper-item" data-step-target="4" type="button" disabled>
+                        <span class="step-index">04</span>
+                        <span class="step-copy"><strong>查看结果</strong><small>分析结果</small></span>
+                    </button>
                 </div>
-              </div>
-            </div>
-            <div class="toolHint" id="lgHint"></div>
-          </div>
+            </section>
 
-          <div class="toolBlock">
-            <div class="toolLabel">小组</div>
-            <div class="multiDrop">
-              <button class="btn" id="sgToggle" type="button">选择小组</button>
-              <div class="multiDropPanel hidden" id="sgPanel">
-                <div class="checkList" id="sgList"></div>
-                <div class="toolActions">
-                  <button class="btn" id="sgAll" type="button">全选</button>
-                  <button class="btn" id="sgClear" type="button">清空</button>
+            <div id="global-alerts-v2" class="mt-4"></div>
+
+            <section class="stage-panel is-active" data-step-panel="1">
+                <div class="panel-header">
+                    <div>
+                        <div class="section-kicker">Step 1</div>
+                        <h2 class="section-title">导入数据</h2>
+                        <p class="section-desc">上传 CSV，系统会自动解析并校验字段。</p>
+                    </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="toolBlock">
-            <div class="toolLabel">分层</div>
-            <div class="multiDrop">
-              <button class="btn" id="tierToggle" type="button">选择分层</button>
-              <div class="multiDropPanel hidden" id="tierPanel">
-                <div class="checkList" id="tierList"></div>
-                <div class="toolActions">
-                  <button class="btn" id="tierAll" type="button">全选</button>
-                  <button class="btn" id="tierClear" type="button">清空</button>
+                <div class="panel-grid panel-grid-upload">
+                    <div class="surface-card upload-dropzone">
+                        <div class="upload-illustration">CSV</div>
+                        <div class="upload-title">上传数据文件</div>
+                        <div class="upload-desc">支持拖拽或点击选择。</div>
+                        <label class="btn btn-primary btn-lg mt-3">
+                            选择文件
+                            <input id="file-input-v2" class="d-none" type="file" accept=".csv,text/csv">
+                        </label>
+                    </div>
+                    <div class="surface-card">
+                        <div class="card-head">
+                            <div>
+                                <div class="card-title">导入状态</div>
+                                <div class="card-subtitle">文件信息</div>
+                            </div>
+                        </div>
+                        <div class="import-status-grid">
+                            <div class="metric-tile">
+                                <span>当前文件</span>
+                                <strong id="import-file-name">未选择文件</strong>
+                            </div>
+                            <div class="metric-tile">
+                                <span>导入行数</span>
+                                <strong id="import-row-count">0</strong>
+                            </div>
+                            <div class="metric-tile">
+                                <span>可选营期</span>
+                                <strong id="import-yingqi-count">0</strong>
+                            </div>
+                            <div class="metric-tile">
+                                <span>状态</span>
+                                <strong id="import-status-text">等待导入</strong>
+                            </div>
+                        </div>
+                        <div id="import-field-hints" class="hint-list"></div>
+                        <div class="panel-actions">
+                            <button id="go-step-2" class="btn btn-primary" type="button" disabled>进入营期配置</button>
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-          </div>
+            </section>
 
-          <div class="toolBlock">
-            <div class="toolLabel">入职状态</div>
-            <div class="multiDrop">
-              <button class="btn" id="empToggle" type="button">选择入职状态</button>
-              <div class="multiDropPanel hidden" id="empPanel">
-                <div class="checkList" id="empList"></div>
-                <div class="toolActions">
-                  <button class="btn" id="empAll" type="button">全选</button>
-                  <button class="btn" id="empClear" type="button">清空</button>
+            <section class="stage-panel" data-step-panel="2">
+                <div class="panel-header">
+                    <div>
+                        <div class="section-kicker">Step 2</div>
+                        <h2 class="section-title">营期配置</h2>
+                        <p class="section-desc">历史对照为可选项，不勾选则跳过历史维度。</p>
+                    </div>
                 </div>
-              </div>
-            </div>
-          </div>
+                <div class="panel-grid panel-grid-period">
+                    <div class="surface-card">
+                        <div class="card-head">
+                            <div>
+                                <div class="card-title">测试营期</div>
+                                <div class="card-subtitle">可多选</div>
+                            </div>
+                            <div class="card-tools">
+                                <button id="target-select-all" class="btn btn-sm btn-light" type="button" disabled>全选</button>
+                                <button id="target-clear-all" class="btn btn-sm btn-light" type="button" disabled>清空</button>
+                            </div>
+                        </div>
+                        <div id="target-selection-summary" class="selection-summary">已选 0 个营期</div>
+                        <div id="target-checkbox-list" class="history-checkbox-list is-disabled"></div>
+                        <div class="inline-note" id="target-yingqi-note">导入后自动展示可用营期。</div>
+                    </div>
+                    <div class="surface-card">
+                        <div class="card-head">
+                            <div>
+                                <div class="card-title">历史对照营期</div>
+                                <div class="card-subtitle">可选配置，不勾选则跳过历史维度</div>
+                            </div>
+                            <div class="card-tools">
+                                <button id="history-select-all" class="btn btn-sm btn-light" type="button" disabled>全选</button>
+                                <button id="history-clear-all" class="btn btn-sm btn-light" type="button" disabled>清空</button>
+                            </div>
+                        </div>
+                        <div id="history-selection-summary" class="selection-summary">已选 0 个营期，未勾选则不分析维度三</div>
+                        <div id="history-checkbox-list" class="history-checkbox-list is-disabled"></div>
+                    </div>
+                </div>
+                <div class="panel-actions">
+                    <button class="btn btn-light btn-soft" type="button" data-prev-step="1">返回上一步</button>
+                    <button id="go-step-3" class="btn btn-primary" type="button" disabled>进入分组配置</button>
+                </div>
+            </section>
 
-          <div class="toolBlock toolBlockEnd">
-            <button class="btn primary" id="runBtn">生成仪表盘</button>
-            <div class="status" id="statusText">请先导入数据</div>
-          </div>
-        </div>
-      </section>
+            <section class="stage-panel" data-step-panel="3">
+                <div class="panel-header">
+                    <div>
+                        <div class="section-kicker">Step 3</div>
+                        <h2 class="section-title">配置大组与 AB 分组</h2>
+                        <p class="section-desc">按测试营期自动铺开所有大组。</p>
+                    </div>
+                </div>
+                <div id="group-configs-v2" class="group-configs"></div>
+                <div class="panel-actions">
+                    <button class="btn btn-light btn-soft" type="button" data-prev-step="2">返回上一步</button>
+                    <button id="analyze-btn-v2" class="btn btn-primary" type="button" disabled>生成分析结果</button>
+                </div>
+            </section>
 
-      <nav class="tabBar">
-        <button class="tabBtn active" data-tab="overview">销售能力分层</button>
-        <button class="tabBtn" data-tab="employment">入职状态</button>
-        <button class="tabBtn" data-tab="detail">班长明细</button>
-        <button class="tabBtn" data-tab="performance">班长业绩分析</button>
-        <button class="tabBtn" data-tab="upgrade">升班分析</button>
-      </nav>
+            <section class="stage-panel" data-step-panel="4">
+                <div class="result-shell">
+                    <div class="result-hero surface-card">
+                        <div class="result-hero-copy">
+                            <div class="section-kicker">Step 4</div>
+                            <h2 class="section-title" id="result-title-v2">分析结果</h2>
+                            <p class="section-desc" id="result-desc-v2">查看整体、大组与历史结果。</p>
+                        </div>
+                        <div class="result-hero-actions">
+                            <div class="badge-row" id="result-badges-v2"></div>
+                            <div class="button-row">
+                                <button class="btn btn-light btn-soft" type="button" data-prev-step="3">返回修改配置</button>
+                            </div>
+                        </div>
+                    </div>
 
-      <div id="tab_overview">
-        <section class="grid kpis">
-          <div class="card">
-            <div class="cardLabel">整体 ROI</div>
-            <div class="cardValue" id="kpiOverallRoi">-</div>
-            <div class="cardHint">总流水 / 总成本</div>
-          </div>
-          <div class="card">
-            <div class="cardLabel">整体 转化率</div>
-            <div class="cardValue" id="kpiOverallCvr">-</div>
-            <div class="cardHint">总单数 / 添加数</div>
-          </div>
-          <div class="card">
-            <div class="cardLabel">整体 添加产值</div>
-            <div class="cardValue" id="kpiOverallArpu">-</div>
-            <div class="cardHint">总流水 / 添加数</div>
-          </div>
-          <div class="card">
-            <div class="cardLabel">覆盖 班长数</div>
-            <div class="cardValue" id="kpiMonitorCount">-</div>
-            <div class="cardHint">去除自然流/短信</div>
-          </div>
-        </section>
+                    <div class="surface-card mt-4">
+                        <div class="view-switcher" id="result-view-switcher">
+                            <button class="view-switch is-active" data-result-view="overall" type="button">整体视角</button>
+                            <button class="view-switch" data-result-view="group" type="button">大组视角</button>
+                            <button class="view-switch" data-result-view="history" type="button">历史视角</button>
+                        </div>
+                    </div>
 
-        <section class="grid twoCols">
-          <div class="card">
-            <div class="cardTitle">整体 ROI 分层占比（班长口径）</div>
-            <div class="chart" id="chartOverallTier"></div>
-            <div class="miniWrap">
-              <table class="miniTable" id="overallTierTable"></table>
-            </div>
-          </div>
-          <div class="card">
-            <div class="cardTitle">各大组 ROI 分层占比（班长口径）</div>
-            <div class="cardHint" id="tierLegendHint"></div>
-            <div class="chart" id="chartLargeGroupTierStack"></div>
-          </div>
-        </section>
-
-        <section class="dimRow">
-          <div class="card">
-            <div class="cardTitle">大组 ROI</div>
-            <div class="chart" id="chartLargeGroupRoi"></div>
-          </div>
-          <div class="card">
-            <div class="cardTitle">大组指标表</div>
-            <div class="tableWrap">
-              <table class="table tableCompact tableAgg" id="tableLargeGroup"></table>
-            </div>
-          </div>
-        </section>
-
-        <section class="dimRow">
-          <div class="card">
-            <div class="cardTitle">主管 ROI</div>
-            <div class="chart" id="chartSupervisorRoi"></div>
-          </div>
-          <div class="card">
-            <div class="cardTitle">主管指标表</div>
-            <div class="tableWrap">
-              <table class="table tableCompact tableAgg" id="tableSupervisor"></table>
-            </div>
-          </div>
-        </section>
-
-        <section class="dimRow">
-          <div class="card">
-            <div class="cardTitle">小组 ROI</div>
-            <div class="chart" id="chartSmallGroupRoi"></div>
-          </div>
-          <div class="card">
-            <div class="cardTitle">小组指标表</div>
-            <div class="tableWrap">
-              <table class="table tableCompact tableAgg" id="tableSmallGroup"></table>
-            </div>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="cardTitle">大组内 ROI 分层与名单（班长口径）</div>
-          <div class="cardHint">每个大组占用一整排：左侧分层结构，右侧班长指标明细</div>
-          <div class="lgFullRows" id="largeGroupFullRows"></div>
-        </section>
-      </div>
-
-      <div id="tab_detail" class="hidden">
-        <section class="card">
-          <div class="row">
-            <div>
-              <div class="cardTitle">班长明细（可筛选）</div>
-              <div class="cardHint">默认展示全部；支持按 ROI 分层筛选与关键词搜索</div>
-            </div>
-            <div class="rowRight">
-              <input id="monitorSearch" class="input" placeholder="按 班长/大组/小组 搜索" />
-              <select id="tierFilter" class="select">
-                <option value="all">全部 ROI 分层</option>
-                <option value="head">头部</option>
-                <option value="mid">中部</option>
-                <option value="tail">尾部</option>
-              </select>
-            </div>
-          </div>
-          <div class="tableWrap">
-            <table class="table" id="monitorTable"></table>
-          </div>
-        </section>
-      </div>
-
-      <div id="tab_employment" class="hidden">
-        <section class="card">
-          <div class="cardTitle">班长类型占比</div>
-          <div class="cardHint">整体 / 社群一部 / 社群三部</div>
-          <section class="grid threeCols">
-            <div class="card">
-              <div class="cardTitle">整体</div>
-              <div class="chart" id="chartTypeOverall"></div>
-              <div class="miniWrap">
-                <table class="miniTable" id="tableTypeOverall"></table>
-              </div>
-            </div>
-            <div class="card">
-              <div class="cardTitle">社群一部</div>
-              <div class="chart" id="chartTypeLg1"></div>
-              <div class="miniWrap">
-                <table class="miniTable" id="tableTypeLg1"></table>
-              </div>
-            </div>
-            <div class="card">
-              <div class="cardTitle">社群三部</div>
-              <div class="chart" id="chartTypeLg3"></div>
-              <div class="miniWrap">
-                <table class="miniTable" id="tableTypeLg3"></table>
-              </div>
-            </div>
-          </section>
-        </section>
-
-        <section class="card">
-          <div class="cardTitle">班长类型关键指标对比</div>
-          <div class="cardHint">标签/数据条/色阶规则与“销售能力分层”一致；包含按大组与汇总</div>
-          <section class="grid threeCols">
-            <div class="card">
-              <div class="cardTitle">新人：ROI分层占比</div>
-              <div class="chart" id="chartTypeTierNew"></div>
-            </div>
-            <div class="card">
-              <div class="cardTitle">回流：ROI分层占比</div>
-              <div class="chart" id="chartTypeTierBack"></div>
-            </div>
-            <div class="card">
-              <div class="cardTitle">老人：ROI分层占比</div>
-              <div class="chart" id="chartTypeTierOld"></div>
-            </div>
-          </section>
-          <div class="tableWrap">
-            <table class="table" id="tableTypeMetrics"></table>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="cardTitle">新人首期分析</div>
-          <div class="cardHint">首期定义：班长类型=新，最小营期</div>
-          <div class="tableWrap">
-            <table class="table" id="tableNewFirst"></table>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="cardTitle">回流首期分析</div>
-          <div class="cardHint">首期定义：班长类型=回流，最小营期</div>
-          <div class="tableWrap">
-            <table class="table" id="tableBackFirst"></table>
-          </div>
-        </section>
-      </div>
-
-      <div id="tab_upgrade" class="hidden">
-        <section class="grid sixCols">
-          <div class="card">
-            <div class="cardLabel">区间 升班率（去重班长）</div>
-            <div class="cardValue" id="kpiUpgradeRateDedup">-</div>
-            <div class="cardHint">去重升班班长数 / 去重班长数</div>
-          </div>
-          <div class="card">
-            <div class="cardLabel">区间 升班率（班次口径）</div>
-            <div class="cardValue" id="kpiUpgradeRateTimes">-</div>
-            <div class="cardHint">sum(营期升班班长数) / sum(营期班长数)</div>
-          </div>
-          <div class="card">
-            <div class="cardLabel">区间 人效</div>
-            <div class="cardValue" id="kpiPeopleEff">-</div>
-            <div class="cardHint">添加人数之和 / 班长数之和</div>
-          </div>
-          <div class="card">
-            <div class="cardLabel">覆盖 班长数</div>
-            <div class="cardValue" id="kpiUpgradeMonitorCnt">-</div>
-            <div class="cardHint">选中范围内去重班长</div>
-          </div>
-          <div class="card">
-            <div class="cardLabel">覆盖 班长数（班次）</div>
-            <div class="cardValue" id="kpiUpgradeMonitorCntTimes">-</div>
-            <div class="cardHint">sum(营期班长数)</div>
-          </div>
-          <div class="card">
-            <div class="cardLabel">覆盖 营期数</div>
-            <div class="cardValue" id="kpiUpgradeCampCnt">-</div>
-            <div class="cardHint">选中营期数</div>
-          </div>
-        </section>
-
-        <section class="grid twoCols">
-          <div class="card">
-            <div class="cardTitle">升班率趋势（营期）</div>
-            <div class="chart" id="chartUpgradeRate"></div>
-          </div>
-          <div class="card">
-            <div class="cardTitle">人效趋势（营期）</div>
-            <div class="chart" id="chartPeopleEff"></div>
-          </div>
-        </section>
-
-        <section class="card stackGap">
-          <div class="cardTitle">班型分布（营期）</div>
-          <div class="chart" id="chartClassTypeStack"></div>
-        </section>
-
-        <section class="card">
-          <div class="cardTitle">班型指标对比（区间）</div>
-          <div class="cardHint">仅统计 小班/中班/大班（按 班长×营期 记录汇总）</div>
-          <div class="tableWrap">
-            <table class="table" id="upgradeClassTypeTable"></table>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="row">
-            <div>
-              <div class="cardTitle">升班班长清单</div>
-              <div class="cardHint">仅展示选中范围内出现过中班/大班的班长；点击可展开查看营期明细</div>
-            </div>
-            <div class="rowRight">
-              <input id="upgradeSearch" class="input" placeholder="按 班长/大组/小组 搜索" />
-            </div>
-          </div>
-          <div class="tableWrap">
-            <table class="table" id="upgradeMonitorTable"></table>
-          </div>
-          <div class="expandWrap" id="upgradeExpand"></div>
-        </section>
-      </div>
-
-      <div id="tab_performance" class="hidden">
-        <section class="card">
-          <div class="row">
-            <div>
-              <div class="cardTitle">班长业绩分析</div>
-              <div class="cardHint">点击班长行展开趋势图：ROI/添加产值/转化率/Z-score（营期内添加产值）；支持一键切换各班长近3个实际带班营期</div>
-            </div>
-            <div class="rowRight">
-              <button class="btn" id="perfRecent3Btn" type="button">仅看各班长近3期</button>
-              <button class="btn" id="perfExportBtn" type="button">导出 CSV</button>
-              <button class="btn" id="perfExportByDayBtn" type="button">导出 营期BYDAY</button>
-              <input id="perfSearch" class="input" placeholder="按 班长/大组/小组 搜索" />
-            </div>
-          </div>
-          <div class="tableWrap">
-            <table class="table tablePerf" id="perfTable"></table>
-          </div>
-        </section>
-      </div>
+                    <div id="result-overview-v2" class="mt-4"></div>
+                    <div id="result-content-v2" class="result-content mt-4"></div>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <script src="./compute.js?v=20260615_v3_12"></script>
-    <script src="./render.js?v=20260615_v3_12"></script>
-    <script src="./app.js?v=20260615_v3_12"></script>
-  </body>
+    <template id="group-card-template-v2">
+        <div class="group-card surface-card">
+            <div class="group-card-head">
+                <div>
+                    <div class="group-card-title group-card-name-v2">大组配置</div>
+                    <div class="group-card-subtitle">直接分配测试组与对照组。</div>
+                </div>
+            </div>
+            <div class="group-card-toolbar">
+                <div class="toolbar-field">
+                    <label class="form-label">搜索班级</label>
+                    <input type="text" class="form-control group-search-input-v2" placeholder="输入班级关键词，支持空格/逗号批量搜索">
+                </div>
+                <div class="toolbar-summary">
+                    <span class="group-badge neutral group-count-available-v2">待分配 0</span>
+                    <span class="group-badge success group-count-test-v2">测试组 0</span>
+                    <span class="group-badge muted group-count-control-v2">对照组 0</span>
+                </div>
+            </div>
+            <div class="group-meta-text-v2">当前大组班级分配概览。</div>
+            <div class="assignment-grid">
+                <div class="assignment-panel">
+                    <div class="assignment-panel-head">
+                        <div>
+                            <div class="assignment-title">待分配</div>
+                            <div class="assignment-desc">未分配班级</div>
+                        </div>
+                        <div class="assignment-actions-inline">
+                            <button type="button" class="btn btn-sm btn-light select-visible-btn-v2" data-bucket="available">全选</button>
+                            <button type="button" class="btn btn-sm btn-primary move-btn-v2" data-source="available" data-target="test">设为测试组</button>
+                            <button type="button" class="btn btn-sm btn-light move-btn-v2" data-source="available" data-target="control">设为对照组</button>
+                        </div>
+                    </div>
+                    <div class="assignment-list assignment-list-available-v2"></div>
+                </div>
+                <div class="assignment-panel">
+                    <div class="assignment-panel-head">
+                        <div>
+                            <div class="assignment-title">测试组</div>
+                            <div class="assignment-desc">测试样本</div>
+                        </div>
+                        <div class="assignment-actions-inline">
+                            <button type="button" class="btn btn-sm btn-light select-visible-btn-v2" data-bucket="test">全选</button>
+                            <button type="button" class="btn btn-sm btn-light move-btn-v2" data-source="test" data-target="available">移回</button>
+                            <button type="button" class="btn btn-sm btn-light move-btn-v2" data-source="test" data-target="control">转为对照</button>
+                        </div>
+                    </div>
+                    <div class="assignment-list assignment-list-test-v2"></div>
+                </div>
+                <div class="assignment-panel">
+                    <div class="assignment-panel-head">
+                        <div>
+                            <div class="assignment-title">对照组</div>
+                            <div class="assignment-desc">对照样本</div>
+                        </div>
+                        <div class="assignment-actions-inline">
+                            <button type="button" class="btn btn-sm btn-light select-visible-btn-v2" data-bucket="control">全选</button>
+                            <button type="button" class="btn btn-sm btn-light move-btn-v2" data-source="control" data-target="available">移回</button>
+                            <button type="button" class="btn btn-sm btn-primary move-btn-v2" data-source="control" data-target="test">转为测试</button>
+                        </div>
+                    </div>
+                    <div class="assignment-list assignment-list-control-v2"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script src="./metrics.js"></script>
+    <script src="./parser.js"></script>
+    <script src="./render.js"></script>
+    <script src="./app.js"></script>
+</body>
 </html>
